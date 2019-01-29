@@ -2193,6 +2193,7 @@
 		  &key (stop 50)
 		  (link-list)
 		  (move-target)
+                  (transform-coords :local)
 		  (debug-view) (warnp t) (revert-if-fail t)
                   (rotation-axis (cond
 				  ((atom move-target) t)
@@ -2325,11 +2326,17 @@
               (dif-pos
                (mapcar #'(lambda (mv tc trans-axis)
                            (send mv :difference-position tc
+                                 :transform-coords
+                                 (if (coordinates-p transform-coords)
+                                 transform-coords move-target)
                                  :translation-axis trans-axis))
                        move-target target-coords translation-axis))
               (dif-rot
                (mapcar #'(lambda (mv tc rot-axis)
                            (send mv :difference-rotation tc
+                                 :transform-coords
+                                 (if (coordinates-p transform-coords)
+                                 transform-coords move-target)
                                  :rotation-axis rot-axis))
                        move-target target-coords rotation-axis)))
          (setq success (send* self :inverse-kinematics-loop
@@ -2845,7 +2852,10 @@
          (robot-ll-len (send robot :calc-target-joint-dimension robot-ll)))
     (send robot :calc-jacobian-from-link-list
           obj-ll :col-offset robot-ll-len :fik fik
-          :transform-coords move-target :move-target obj-move-target
+          :transform-coords
+          (if (coordinates-p transform-coords)
+              transform-coords move-target)
+          :move-target obj-move-target
           :rotation-axis rotation-axis :translation-axis translation-axis)
     (send robot :calc-jacobian-from-link-list
           robot-ll :move-target move-target :fik fik
